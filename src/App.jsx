@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { GeoJSON, MapContainer, ScaleControl, TileLayer, useMap, useMapEvents } from 'react-leaflet'
+import { estimateRepairCost, formatRepairCostBadge, repairCostTone } from './utils/repairCostEstimator'
 
 const BROOKLINE_CENTER = [42.3318, -71.1212]
 const BROOKLINE_ZOOM = 13
@@ -409,6 +410,10 @@ export default function App() {
       .join('|')
   }, [viewMode, roadLegendEnabled, sidewalkLegendEnabled])
 
+  const selectedRepairEstimate = useMemo(() => {
+    return estimateRepairCost(selectedSegment)
+  }, [selectedSegment])
+
   const visibleFeatures = useMemo(() => {
     if (!Array.isArray(allFeatures)) return []
     if (viewMode === 'roads') {
@@ -696,11 +701,17 @@ export default function App() {
                 <div className="selected-details">
                   <div className="selected-title-row">
                     <div className="selected-road">{selectedSegment.name}</div>
-                    <div className={`condition-badge ${scoreToBadgeTone(selectedSegment.score)}`}>
-                      {selectedSegment.label}
+
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className={`condition-badge ${scoreToBadgeTone(selectedSegment.score)}`}>
+                        {selectedSegment.label}
+                      </div>
+
+                      <div className={`condition-badge ${repairCostTone(selectedRepairEstimate)}`}>
+                        {formatRepairCostBadge(selectedRepairEstimate)}
+                      </div>
                     </div>
                   </div>
-
                   <div className="selected-route">
                     {selectedSegment.fromStreet} to {selectedSegment.toStreet}
                   </div>
@@ -718,10 +729,6 @@ export default function App() {
                   </div>
 
                   <div className="detail-grid detail-grid-5">
-                    <div className="detail-item">
-                      <div className="detail-label">PCI Score</div>
-                      <div className="detail-value">{formatScore(selectedSegment.score)}</div>
-                    </div>
 
                     <div className="detail-item">
                       <div className="detail-label">Width</div>
@@ -740,6 +747,20 @@ export default function App() {
                     <div className="detail-item">
                       <div className="detail-label">Material</div>
                       <div className="detail-value">{selectedSegment.material || 'N/A'}</div>
+                    </div>
+
+                    <div className="detail-item">
+                      <div className="detail-label">Est. Repair Cost</div>
+                      <div className="detail-value">
+                        {selectedRepairEstimate?.ok ? selectedRepairEstimate.rangeText : 'N/A'}
+                      </div>
+                    </div>
+
+                    <div className="detail-item span-2">
+                      <div className="detail-label">Recommended Treatment</div>
+                      <div className="detail-value">
+                        {selectedRepairEstimate?.ok ? selectedRepairEstimate.treatment : 'N/A'}
+                      </div>
                     </div>
 
                     <div className="detail-item span-2">
@@ -775,11 +796,17 @@ export default function App() {
                 <div className="selected-details">
                   <div className="selected-title-row">
                     <div className="selected-road">{selectedSegment.name}</div>
-                    <div className={`condition-badge ${sidewalkConditionBadgeTone(selectedSegment.label)}`}>
-                      {selectedSegment.label}
+
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div className={`condition-badge ${sidewalkConditionBadgeTone(selectedSegment.label)}`}>
+                        {selectedSegment.label}
+                      </div>
+
+                      <div className={`condition-badge ${repairCostTone(selectedRepairEstimate)}`}>
+                        {formatRepairCostBadge(selectedRepairEstimate)}
+                      </div>
                     </div>
                   </div>
-
                   <div className="selected-route">Sidewalk segment</div>
 
                   <div className="selected-summary-strip">
@@ -801,11 +828,6 @@ export default function App() {
                     </div>
 
                     <div className="detail-item">
-                      <div className="detail-label">Type</div>
-                      <div className="detail-value">{selectedSegment.sidewalkType || 'N/A'}</div>
-                    </div>
-
-                    <div className="detail-item">
                       <div className="detail-label">Length</div>
                       <div className="detail-value">
                         {Number.isFinite(selectedSegment.approxLengthFt) ? `${selectedSegment.approxLengthFt.toFixed(1)} ft` : 'N/A'}
@@ -815,6 +837,20 @@ export default function App() {
                     <div className="detail-item">
                       <div className="detail-label">Material</div>
                       <div className="detail-value">{selectedSegment.material || 'N/A'}</div>
+                    </div>
+
+                    <div className="detail-item">
+                      <div className="detail-label">Est. Repair Cost</div>
+                      <div className="detail-value">
+                        {selectedRepairEstimate?.ok ? selectedRepairEstimate.rangeText : 'N/A'}
+                      </div>
+                    </div>
+
+                    <div className="detail-item span-2">
+                      <div className="detail-label">Recommended Treatment</div>
+                      <div className="detail-value">
+                        {selectedRepairEstimate?.ok ? selectedRepairEstimate.treatment : 'N/A'}
+                      </div>
                     </div>
 
                     <div className="detail-item span-2">
