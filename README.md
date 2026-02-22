@@ -1,4 +1,4 @@
-# Pavement & Sidewalk Condition Viewer
+# Pavement Condition Viewer
 
 An interactive infrastructure decision-support tool built with Cyvl data to help cities prioritize pavement and sidewalk repairs.
 
